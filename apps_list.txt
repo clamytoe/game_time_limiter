@@ -1,0 +1,6 @@
+javaw.exe
+InfinityNikki.exe
+Minecraft.Windows.exe
+MinecraftDungeons.exe
+RobloxPlayerBeta.exe
+steam.exe

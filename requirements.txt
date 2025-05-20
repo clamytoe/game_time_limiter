@@ -1,0 +1,4 @@
+psutil
+pytest
+python-dotenv
+wxpython

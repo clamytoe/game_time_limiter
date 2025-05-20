@@ -1,0 +1,19 @@
+name: game_time_limiter
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - black
+  - flake8
+  - isort
+  - mypy
+  - psutil
+  - pyinstaller
+  - pytest
+  - pytest-cov
+  - python=3.13.3
+  - python-dotenv
+  - types-psutil
+  - wxpython
+  - pip:
+      - types-wxpython
