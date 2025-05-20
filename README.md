@@ -45,10 +45,76 @@ pip install -r requirements.txt
 pyinstaller --onefile --windowed --icon=OGS.ico game_time_limiter.py
 ```
 
+#### Windows executable notes
+
+Once your executable is created, you can move it to wherever you like. 
+For example, create a folder in your Documents directory called **GTL** and place the executable along with the apps_list.txt file in there.
+
+> **NOTE:** I had initially placed the files in the root of the C:\ drive, but it's a hassle when updated the apps_list file because of the Windows permissions.
+
+When you run it for the first time, it will looke like this:
+
+![game_time_limiter](img/game_time_limiter.png)
+
+If you click on the "Show List" button, you will see the list of games that are currently being monitored.
+
+![game_time_limiter_list](img/game_time_limiter_list.png)
+
+As your child plays any of the games listed:
+- The progress bar will grow.
+- The percentage of time used is didplayed in the title.
+- When 5 minutes are left, a warning message will be displayed. 
+- If the time limit is reached, the game will be closed and an alert will be displayed.
+- Time resets at midnight.
+
+## Task Scheduler
+
+I used the Windows Task Scheduler to run the executable when the user logs on to the machine.
+
+**Game Time Limiter**:
+1. Open Task Scheduler
+2. Click "Create Task..."
+3. Under General:
+      - Name: Game Time Limiter
+      - Check: “Run only when user is logged on”
+4. Under Triggers:
+      - New > Begin the task: At log on
+5. Under Actions:
+      - Action: Start a program
+      - Program/script: powershell
+      - Add arguments:\
+      -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\GameTimeLimiter.ps1"
+6. Click OK.
+
+My kids are smart as hell and it won't take them long how to figure out how to kill the process.
+To prevent that, I also created this task to monitor when the application is stopped and restart it.
+
+**Game Time Monitor**:
+
+1. Open Task Scheduler.
+2. Click "Create Task...".
+3. Under General:
+      - Name: "Game Time Monitor"
+      - Check "Run whether user is logged on or not".
+      - Run with highest privileges.
+4. Under Triggers:
+      - Click New > Begin the task "On an event".
+      - Log: System
+      - Source: "Process Exit"
+      - Event ID: 7036 (Tracks when a service stops)
+5. Under Actions:
+      - Click New.
+      - Action: Start a program.
+      - Program/script: powershell
+      - Arguments:\
+          -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\GameTimeLimiter.ps1"
+6. Click OK.
+
 ## Additional tools
 
 I've provided additional scripts to help with finding what Steam and Epic Games are installed on the system, along with another to display the currently running executables.
 
+**find_games.py**:
 ```zsh
 > python find_games.py
 
@@ -66,8 +132,7 @@ Riven.exe
 InfinityNikki.exe
 ```
 
-and
-
+**active_processes.py**:
 ```zsh
 > python active_processes.py
 
@@ -102,6 +167,29 @@ MinecraftDungeons.exe
 RobloxPlayerBeta.exe
 steam.exe
 ```
+
+
+
+**create_exe.bat**:
+
+The `create_exe.bat` file will create a Windows executable from the `game_time_limiter.py` file.
+
+```cmd
+create_exe.bat
+875 INFO: PyInstaller: 6.13.0, contrib hooks: 2025.4
+875 INFO: Python: 3.13.3 (conda)
+914 INFO: Platform: Windows-11-10.0.26100-SP0
+...
+25626 INFO: Copying icon to EXE
+25697 INFO: Copying 0 resources to EXE
+25698 INFO: Embedding manifest in EXE
+25754 INFO: Appending PKG archive to EXE
+25826 INFO: Fixing EXE headers
+27787 INFO: Building EXE from EXE-00.toc completed successfully.
+27792 INFO: Build complete! The results are available in: C:\Users\clamy\Projects\game_time_limiter\dist
+```
+
+You will find the executable in the `dist` directory.
 
 ## Contributing
 
