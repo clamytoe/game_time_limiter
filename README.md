@@ -129,13 +129,13 @@ If you encounter any problems, please [file an issue](https://github.com/clamyto
 * **v0.1.1** Modified badge url for license file from master to main branch.
 * **v0.1.0** Initial commit.
 
-[python-version]:https://img.shields.io/badge/python-3.13.3-brightgreen.svg
-[latest-version]:https://img.shields.io/badge/version-0.1.1-blue.svg
-[issues-image]:https://img.shields.io/github/issues/clamytoe/game_time_limiter.svg
+[python-version]:https://img.shields.io/badge/python-3.13.3-brightgreen.svg?cacheSeconds=3600
+[latest-version]:https://img.shields.io/badge/version-0.1.1-blue.svg?cacheSeconds=3600
+[issues-image]:https://img.shields.io/github/issues/clamytoe/game_time_limiter.svg?cacheSeconds=3600
 [issues-url]:https://github.com/clamytoe/game_time_limiter/issues
-[fork-image]:https://img.shields.io/github/forks/clamytoe/game_time_limiter.svg
+[fork-image]:https://img.shields.io/github/forks/clamytoe/game_time_limiter.svg?cacheSeconds=3600
 [fork-url]:https://github.com/clamytoe/game_time_limiter/network
-[stars-image]:https://img.shields.io/github/stars/clamytoe/game_time_limiter.svg
+[stars-image]:https://img.shields.io/github/stars/clamytoe/game_time_limiter.svg?cacheSeconds=3600
 [stars-url]:https://github.com/clamytoe/game_time_limiter/stargazers
-[license-image]:https://img.shields.io/github/license/clamytoe/game_time_limiter.svg
+[license-image]:https://img.shields.io/github/license/clamytoe/game_time_limiter.svg?cacheSeconds=3600
 [license-url]:https://github.com/clamytoe/game_time_limiter/blob/main/LICENSE
