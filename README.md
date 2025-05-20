@@ -81,10 +81,10 @@ I used the Windows Task Scheduler to run the executable when the user logs on to
       - New > Begin the task: At log on
 5. Under Actions:
       - Action: Start a program
-      - Program/script: powershell
-      - Add arguments:\
-      -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\GameTimeLimiter.ps1"
+      - Browse: To file location
+      - Start in (optional): Same file location
 6. Click OK.
+7. Click OK.
 
 My kids are smart as hell and it won't take them long how to figure out how to kill the process.
 To prevent that, I also created this task to monitor when the application is stopped and restart it.
@@ -105,10 +105,10 @@ To prevent that, I also created this task to monitor when the application is sto
 5. Under Actions:
       - Click New.
       - Action: Start a program.
-      - Program/script: powershell
-      - Arguments:\
-          -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\GameTimeLimiter.ps1"
+      - Browse: To file location
+      - Start in (optional): Same file location
 6. Click OK.
+7. Click OK.
 
 ## Additional tools
 
