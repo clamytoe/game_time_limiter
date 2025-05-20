@@ -137,4 +137,4 @@ If you encounter any problems, please [file an issue](https://github.com/clamyto
 [stars-image]:https://img.shields.io/github/stars/clamytoe/game_time_limiter.svg
 [stars-url]:https://github.com/clamytoe/game_time_limiter/stargazers
 [license-image]:https://img.shields.io/github/license/clamytoe/game_time_limiter.svg
-[license-url]:https://github.com/clamytoe/game_time_limiter/blob/master/LICENSE
+[license-url]:https://github.com/clamytoe/game_time_limiter/blob/main/LICENSE
