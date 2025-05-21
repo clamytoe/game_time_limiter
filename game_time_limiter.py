@@ -6,40 +6,66 @@ from pathlib import Path
 import psutil
 import wx
 
+CONFIG_FILE = Path(__file__).parent / "config.json"
+
+
+def load_config():
+    if CONFIG_FILE.exists():
+        with CONFIG_FILE.open("r") as file:
+            return json.load(file)
+    return {}
+
+
+config = load_config()
+
+# Default values
+DEFAULT_LIMIT_MINUTES = 120
+DEFAULT_APPS_LIST = Path(__file__).parent / "apps_list.txt"
+DEFAULT_LOG_PATH = Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
+DEFAULT_TITLE = "Game Time Tracker"
+
+# Assign values from config file
+LIMIT_MINUTES = config.get("limit_minutes", DEFAULT_LIMIT_MINUTES)
+APPS_LIST = Path(config.get("apps_list", DEFAULT_APPS_LIST))
+LOG_PATH = Path(config.get("log_path", DEFAULT_LOG_PATH))
+TITLE = config.get("title", DEFAULT_TITLE)
+
 
 class GameTimeTracker(wx.Frame):
     def __init__(
-        self, apps_list: str = "apps_list.txt", limit_minutes: int = 120
+        self, title: str, limit_minutes: int, apps_list: Path, log_path: Path
     ) -> None:
         """
         Initialize the GameTimeTracker application window.
 
+        This constructor sets up the main window, initializes game tracking data,
+        and configures GUI components such as a progress bar, toggle button, and
+        game list box. It also starts a timer for periodic updates.
+
         Parameters:
-        apps_list (str): The filename of the text file containing the list of tracked
-                        games. Defaults to "apps_list.txt".
-        limit_minutes (int): The maximum allowed game time in minutes. Defaults to 120.
-
-        Initializes various GUI components including a progress bar, toggle button,
-        and game list box. Sets up a timer to update the game time tracking GUI
-        every minute. Loads tracked games and their playtimes. Configures the
-        window layout and displays a warning message when the time limit is near.
+        title (str): The title of the application window.
+        limit_minutes (int): The maximum allowed playtime in minutes.
+        apps_list (Path): Path to the file containing the list of tracked games.
+        log_path (Path): Path to the log file for storing game times.
         """
-
-        super().__init__(None, title="Game Time Tracker", size=wx.Size(350, 300))
-
-        self.base_dir = self.get_base()
+        self.title = title
         self.limit_minutes = limit_minutes
         self.apps_list = apps_list
+        self.base_dir = self.get_base()
         self.tracked_games_file = self.base_dir / self.apps_list
         self.tracked_games = self.load_tracked_games()
-        self.log_path = Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
+        self.log_path = log_path
         self.game_times = self.load_game_times()
+
+        super().__init__(None, title=self.title, size=wx.Size(350, 300))
 
         panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         # Progress Bar
-        self.progress_bar = wx.Gauge(panel, range=limit_minutes, size=wx.Size(320, 25))
+        self.progress_bar = wx.Gauge(
+            panel, range=self.limit_minutes, size=wx.Size(320, 25)
+        )
         vbox.Add(self.progress_bar, flag=wx.ALL | wx.EXPAND, border=10)
 
         # Toggle Button
@@ -193,8 +219,15 @@ class GameTimeTracker(wx.Frame):
         if self.log_path.exists():
             with self.log_path.open("r") as file:
                 data = json.load(file)
-                if data["date"] == time.strftime("%Y-%m-%d"):
-                    return data["game_times"]
+                log_date = data.get("date")
+
+                # If log date is outdated, reset all playtimes
+                if log_date != time.strftime("%Y-%m-%d"):
+                    return {game: 0 for game in self.tracked_games}
+
+                return data.get("game_times", {})
+
+        # If log file doesn't exist, initialize game times
         return {game: 0 for game in self.tracked_games}
 
     def save_game_times(self):
@@ -212,5 +245,10 @@ class GameTimeTracker(wx.Frame):
 
 if __name__ == "__main__":
     app = wx.App(False)
-    GameTimeTracker()
+    GameTimeTracker(
+        title=TITLE,
+        log_path=LOG_PATH,
+        apps_list=APPS_LIST,
+        limit_minutes=LIMIT_MINUTES,
+    )
     app.MainLoop()

@@ -1,0 +1,6 @@
+{
+    "limit_minutes": 120,
+    "log_path": "D:/Documents/GTL/GameTimeLog.json",
+    "apps_list": "D:/Documents/GTL/apps_list.txt",
+    "title": "Game Time Limiter"
+}
