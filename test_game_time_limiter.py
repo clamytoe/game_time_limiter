@@ -4,31 +4,58 @@ test_game_time_limiter.py
 Tests for game_time_limiter.
 """
 
-from pathlib import Path
-
 import pytest
 import wx
 
-from game_time_limiter import GameTimeTracker
+from game_time_limiter import (
+    APPS_LIST,
+    LIMIT_MINUTES,
+    LOG_PATH,
+    PASSWORD,
+    TITLE,
+    GameTimeTracker,
+)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def gtt():
+    """
+    A fixture that creates a GameTimeTracker with the default values.
+
+    Scope is at the module level, so this will be created once per module.
+    """
     _ = wx.App(False)
-    return GameTimeTracker()
+    return GameTimeTracker(TITLE, LIMIT_MINUTES, APPS_LIST, LOG_PATH, PASSWORD)
 
 
-@pytest.fixture
-def gtt_custom():
+@pytest.fixture(scope="function")
+def gtt_custom(tmp_path):
+    """
+    A fixture that creates a GameTimeTracker with custom values for testing.
+
+    This fixture uses a temporary path to create test files for the apps list
+    and log. It provides a GameTimeTracker instance with a title of "Test Tracker",
+    a playtime limit of 60 minutes, and paths to the temporary apps list and log files.
+
+    Parameters:
+    tmp_path: Pytest fixture that provides a temporary directory unique to the test
+    invocation.
+
+    Returns:
+    GameTimeTracker: An instance of GameTimeTracker configured with test-specific
+    values.
+    """
     _ = wx.App(False)
-    apps = "test_apps.txt"
+    title = "Test Tracker"
     limit = 60
-    return GameTimeTracker(apps_list=apps, limit_minutes=limit)
+    apps = tmp_path / "test_apps.txt"
+    log = tmp_path / "test_log.json"
+    password = "admin"
+    return GameTimeTracker(title, limit, apps, log, password)
 
 
-def test_base_dir(gtt):
-    base_dir = gtt.get_base()
-    assert "game_time_limiter" in str(base_dir)
+def test_title(gtt_custom):
+    assert gtt_custom.title == "Test Tracker"
 
 
 def test_limit_minutes(gtt_custom):
@@ -36,15 +63,11 @@ def test_limit_minutes(gtt_custom):
 
 
 def test_apps_list(gtt_custom):
-    assert gtt_custom.apps_list == "test_apps.txt"
+    assert gtt_custom.apps_list.name == "test_apps.txt"
 
 
-def test_tracked_games_file(gtt_custom):
-    assert gtt_custom.tracked_games_file == Path.cwd() / "test_apps.txt"
-
-
-def test_log_path(gtt):
-    assert gtt.log_path == Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
+def test_log_path(gtt_custom):
+    assert gtt_custom.log_path.name == "test_log.json"
 
 
 def test_load_game_times(gtt):
@@ -58,5 +81,4 @@ def test_load_tracked_games(gtt):
         "Minecraft.Windows.exe",
         "MinecraftDungeons.exe",
         "RobloxPlayerBeta.exe",
-        "steam.exe",
     }

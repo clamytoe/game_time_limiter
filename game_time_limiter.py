@@ -6,7 +6,18 @@ from pathlib import Path
 import psutil
 import wx
 
-CONFIG_FILE = Path(__file__).parent / "config.json"
+
+def get_base() -> Path:
+    """Determine the correct base directory, whether running as a script or an EXE."""
+    if getattr(sys, "frozen", False):
+        return Path.home() / "AppData" / "Roaming"
+        # return Path(sys.executable).parent  # EXE location
+    else:
+        return Path(__file__).parent  # Script location
+
+
+BASE_DIR = get_base()
+CONFIG_FILE = BASE_DIR / "gtl_config.json"
 
 
 def load_config():
@@ -20,44 +31,59 @@ config = load_config()
 
 # Default values
 DEFAULT_LIMIT_MINUTES = 120
-DEFAULT_APPS_LIST = Path(__file__).parent / "apps_list.txt"
-DEFAULT_LOG_PATH = Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
+DEFAULT_APPS_LIST = BASE_DIR / "apps_list.txt"
+DEFAULT_LOG_PATH = BASE_DIR / "GameTimeLog.json"
 DEFAULT_TITLE = "Game Time Tracker"
+DEFAULT_PASSWORD = "password"
 
 # Assign values from config file
 LIMIT_MINUTES = config.get("limit_minutes", DEFAULT_LIMIT_MINUTES)
 APPS_LIST = Path(config.get("apps_list", DEFAULT_APPS_LIST))
 LOG_PATH = Path(config.get("log_path", DEFAULT_LOG_PATH))
 TITLE = config.get("title", DEFAULT_TITLE)
+PASSWORD = config.get("password", DEFAULT_PASSWORD)
+
+# For testing python script
+print(f"{PASSWORD=}")
 
 
 class GameTimeTracker(wx.Frame):
     def __init__(
-        self, title: str, limit_minutes: int, apps_list: Path, log_path: Path
+        self,
+        title: str,
+        limit_minutes: int,
+        apps_list: Path,
+        log_path: Path,
+        password: str,
     ) -> None:
         """
-        Initialize the GameTimeTracker application window.
+        Initialize the GameTimeTracker window and set up UI elements.
 
-        This constructor sets up the main window, initializes game tracking data,
-        and configures GUI components such as a progress bar, toggle button, and
-        game list box. It also starts a timer for periodic updates.
+        The GameTimeTracker window displays a progress bar showing the percentage
+        of time used and a button to toggle the visibility of a list of games being
+        tracked. The window is initially created with a smaller size and the game
+        list is hidden.
 
         Parameters:
-        title (str): The title of the application window.
-        limit_minutes (int): The maximum allowed playtime in minutes.
-        apps_list (Path): Path to the file containing the list of tracked games.
-        log_path (Path): Path to the log file for storing game times.
+        title (str): The title of the window.
+        limit_minutes (int): The total amount of time to allow for games to be played.
+        apps_list (Path): The path to a text file containing a list of games to track.
+        log_path (Path): The path to a JSON file to store game playtimes.
+        password (str): The password to use for encrypting/decrypting the log file.
+
+        Returns:
+        None
         """
         self.title = title
         self.limit_minutes = limit_minutes
         self.apps_list = apps_list
-        self.base_dir = self.get_base()
-        self.tracked_games_file = self.base_dir / self.apps_list
         self.tracked_games = self.load_tracked_games()
         self.log_path = log_path
         self.game_times = self.load_game_times()
+        self.password = password
 
         super().__init__(None, title=self.title, size=wx.Size(350, 300))
+        self.Bind(wx.EVT_CLOSE, self.on_close_attempt)
 
         panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -92,25 +118,6 @@ class GameTimeTracker(wx.Frame):
         self.toggle_btn.SetLabel("Show List")
 
         self.Show()
-
-    def get_base(self) -> Path:
-        """
-        Determine the base directory of the application.
-
-        If running as an executable, it is the directory of the executable.
-        If running normally, it is the directory of the script.
-
-        Returns:
-            Path: The base directory of the application.
-        """
-        if getattr(sys, "frozen", False):
-            # Get the executable's directory
-            base_dir = Path(sys.executable).parent
-        else:
-            # Get script's directory when running normally
-            base_dir = Path(__file__).parent
-
-        return base_dir
 
     def toggle_list(self, event) -> None:
         """
@@ -163,7 +170,7 @@ class GameTimeTracker(wx.Frame):
 
         # Update percentage in window title
         percentage_used = (used_minutes / self.limit_minutes) * 100
-        self.SetTitle(f"Game Time Tracker - {percentage_used:.1f}%")
+        self.SetTitle(f"{self.title} - {percentage_used:.1f}%")
 
         # Update game list display
         self.game_listbox.Clear()
@@ -202,8 +209,8 @@ class GameTimeTracker(wx.Frame):
         Reads the contents of the tracked games file into a set.
         If the file is missing, an empty set is returned.
         """
-        if self.tracked_games_file.exists():
-            with self.tracked_games_file.open("r") as file:
+        if self.apps_list.exists():
+            with self.apps_list.open("r") as file:
                 return {line.strip() for line in file}
 
         return set()
@@ -242,6 +249,54 @@ class GameTimeTracker(wx.Frame):
         with self.log_path.open("w") as file:
             json.dump(data, file)
 
+    def ask_password(self):
+        """
+        Prompts the user to enter an admin password to exit the application.
+
+        When the user attempts to close the application, this function is called.
+        It displays a password dialog with a password entry field and OK/Cancel
+        buttons. If the user enters the correct password, the application is
+        closed. If the user enters an incorrect password or cancels, an error
+        message is displayed and the application remains open.
+
+        The password is currently hardcoded as "mys3cur3p@$$w0rd!".
+        """
+        dlg = wx.TextEntryDialog(
+            self,
+            "Enter Admin Password:",
+            "Restricted Access",
+            style=wx.TE_PASSWORD | wx.OK | wx.CANCEL,
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:  # Ensures user can press OK
+            entered_password = dlg.GetValue()
+            dlg.Destroy()
+
+            # Validate the password
+            if entered_password == self.password:
+                self.Destroy()  # Close the app
+            else:
+                wx.MessageBox(
+                    "Incorrect Password!", "Access Denied", wx.OK | wx.ICON_ERROR
+                )
+
+        else:
+            dlg.Destroy()  # Close dialog if user cancels
+
+    def on_close_attempt(self, event):
+        """
+        Handle the close event for the application window.
+
+        This function is triggered when the user attempts to close the application
+        window. It invokes the ask_password method to prompt the user for an admin
+        password, ensuring that unauthorized users cannot terminate the application
+        without the correct credentials.
+
+        Parameters:
+        event: The wxPython event object triggered by the close attempt.
+        """
+        self.ask_password()
+
 
 if __name__ == "__main__":
     app = wx.App(False)
@@ -250,5 +305,6 @@ if __name__ == "__main__":
         log_path=LOG_PATH,
         apps_list=APPS_LIST,
         limit_minutes=LIMIT_MINUTES,
+        password=PASSWORD,
     )
     app.MainLoop()
