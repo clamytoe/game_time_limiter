@@ -111,3 +111,6 @@ ENV/
 
 # env file
 .env
+
+# gtl
+GameTimeLog.json
