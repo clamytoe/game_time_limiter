@@ -179,10 +179,10 @@ class GameTimeTracker(wx.Frame):
                 f"{game.rstrip('.exe')} - {self.game_times[game]} min"
             )
 
-        # Show 5-minute warning
-        if used_minutes >= (self.limit_minutes - 5) and not self.warning_shown:
+        # Show 10-minute warning
+        if used_minutes >= (self.limit_minutes - 10) and not self.warning_shown:
             wx.MessageBox(
-                "Warning: You have 5 minutes left!",
+                "Warning: You have 10 minutes left!",
                 "Time Running Out",
                 wx.OK | wx.ICON_WARNING,
             )
