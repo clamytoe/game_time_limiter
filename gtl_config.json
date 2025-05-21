@@ -3,5 +3,5 @@
     "log_path": "GameTimeLog.json",
     "apps_list": "apps_list.txt",
     "title": "Game Time Limiter",
-    "password": "my$3cur3P@$$w0rd!"
+    "password": "admin"
 }
