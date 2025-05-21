@@ -47,10 +47,9 @@ pyinstaller --onefile --windowed --icon=OGS.ico game_time_limiter.py
 
 #### Windows executable notes
 
-Once your executable is created, you can move it to wherever you like. 
-For example, create a folder in your Documents directory called **GTL** and place the executable along with the apps_list.txt file in there.
+Once your executable is created, you can move it to wherever you like.
 
-> **NOTE:** I had initially placed the files in the root of the C:\ drive, but it's a hassle when updated the apps_list file because of the Windows permissions.
+> **NOTE:** By default the Windows executable will look for the `gtl_config.json` and `apps_list.txt` files in the **%appdata%** directory. It will also create and store the `GaneTimeLimiter.json` log file ithere.
 
 When you run it for the first time, it will looke like this:
 
@@ -61,9 +60,10 @@ If you click on the "Show List" button, you will see the list of games that are 
 ![game_time_limiter_list](img/game_time_limiter_list.png)
 
 As your child plays any of the games listed:
+
 - The progress bar will grow.
 - The percentage of time used is didplayed in the title.
-- When 5 minutes are left, a warning message will be displayed. 
+- When 10 minutes are left, a warning message will be displayed.
 - If the time limit is reached, the game will be closed and an alert will be displayed.
 - Time resets at midnight.
 
@@ -72,49 +72,32 @@ As your child plays any of the games listed:
 I used the Windows Task Scheduler to run the executable when the user logs on to the machine.
 
 **Game Time Limiter**:
-1. Open Task Scheduler
-2. Click "Create Task..."
-3. Under General:
-      - Name: Game Time Limiter
-      - Check: “Run only when user is logged on”
-4. Under Triggers:
-      - New > Begin the task: At log on
-5. Under Actions:
-      - Action: Start a program
-      - Browse: To file location
-      - Start in (optional): Same file location
-6. Click OK.
-7. Click OK.
 
-My kids are smart as hell and it won't take them long how to figure out how to kill the process.
-To prevent that, I also created this task to monitor when the application is stopped and restart it.
+1. **Open Task Scheduler** ( **Win + R**, type `taskschd.msc`, hit **Enter**).
+2. Click **Create Task...**
+3. **General Tab:**
+      - Name: `Game Time Limiter`
+      - Check: **Run only when user is logged on**
+4. **Triggers Tab:**
+      - Click **New**
+      - Begin the task: **At log on**
+5. **Actions Tab:**
+      - Click **New**
+      - Action: **Start a program**
+      - Browse: *File location*
+      - Start in (optional): *Same file location*
+6. Click **OK**.
 
-**Game Time Monitor**:
+To prevent my kids from just closing the application, I password protected it.
 
-1. Open Task Scheduler.
-2. Click "Create Task...".
-3. Under General:
-      - Name: "Game Time Monitor"
-      - Check "Run whether user is logged on or not".
-      - Run with highest privileges.
-4. Under Triggers:
-      - Click New > Begin the task "On an event".
-      - Log: System
-      - Source: "Process Exit"
-      - Event ID: 7036 (Tracks when a service stops)
-5. Under Actions:
-      - Click New.
-      - Action: Start a program.
-      - Browse: To file location
-      - Start in (optional): Same file location
-6. Click OK.
-7. Click OK.
+> **NOTE:** If the script is ran from the command line, the password is printed to the terminal.
 
 ## Additional tools
 
 I've provided additional scripts to help with finding what Steam and Epic Games are installed on the system, along with another to display the currently running executables.
 
 **find_games.py**:
+
 ```zsh
 > python find_games.py
 
@@ -133,6 +116,7 @@ InfinityNikki.exe
 ```
 
 **active_processes.py**:
+
 ```zsh
 > python active_processes.py
 
@@ -161,14 +145,11 @@ These will make it easy to populate the `apps_list.txt` file.
 
 ```txt
 javaw.exe
-InfinityNikki.exe
 Minecraft.Windows.exe
 MinecraftDungeons.exe
 RobloxPlayerBeta.exe
 steam.exe
 ```
-
-
 
 **create_exe.bat**:
 
@@ -196,11 +177,11 @@ You will find the executable in the `dist` directory.
 Contributions are welcomed.
 Tests can be run with with `pytest -v`, please ensure that all tests are passing and that you've checked your code with the following packages before submitting a pull request:
 
-* black
-* flake8
-* isort
-* mypy
-* pytest-cov
+- black
+- flake8
+- isort
+- mypy
+- pytest-cov
 
 I am not adhering to them strictly, but try to clean up what's reasonable.
 
@@ -214,11 +195,12 @@ If you encounter any problems, please [file an issue](https://github.com/clamyto
 
 ## Changelog
 
-* **v0.1.1** Modified badge url for license file from master to main branch.
-* **v0.1.0** Initial commit.
+- **v0.2.0** Moved configuration values outside of program.
+- **v0.1.1** Modified badge url for license file from master to main branch.
+- **v0.1.0** Initial commit.
 
 [python-version]:https://img.shields.io/badge/python-3.13.3-brightgreen.svg?cacheSeconds=3600
-[latest-version]:https://img.shields.io/badge/version-0.1.1-blue.svg?cacheSeconds=3600
+[latest-version]:https://img.shields.io/badge/version-0.2.0-blue.svg?cacheSeconds=3600
 [issues-image]:https://img.shields.io/github/issues/clamytoe/game_time_limiter.svg?cacheSeconds=3600
 [issues-url]:https://github.com/clamytoe/game_time_limiter/issues
 [fork-image]:https://img.shields.io/github/forks/clamytoe/game_time_limiter.svg?cacheSeconds=3600
