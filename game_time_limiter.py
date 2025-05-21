@@ -217,24 +217,34 @@ class GameTimeTracker(wx.Frame):
 
     def load_game_times(self) -> dict:
         """
-        Load playtime from file.
+        Load game times from file.
 
-        Reads the contents of the log file into a dictionary with game names as
-        keys and playtime in minutes as values. If the file is missing or the
-        date is not today, an empty dictionary is returned.
+        Reads the contents of the log file into a dictionary containing the
+        playtime for each tracked game. If the log file is missing or outdated,
+        the method initializes all game times to 0.
+
+        Returns:
+        dict: A dictionary of game names to playtimes in minutes.
         """
         if self.log_path.exists():
             with self.log_path.open("r") as file:
                 data = json.load(file)
                 log_date = data.get("date")
 
-                # If log date is outdated, reset all playtimes
+                # If the log date is outdated, reset all game times
                 if log_date != time.strftime("%Y-%m-%d"):
                     return {game: 0 for game in self.tracked_games}
 
-                return data.get("game_times", {})
+                game_times = data.get("game_times", {})
 
-        # If log file doesn't exist, initialize game times
+                # Ensure every tracked game has a key (prevent missing key crash)
+                for game in self.tracked_games:
+                    if game not in game_times:
+                        game_times[game] = 0  # Initialize missing game key
+
+                return game_times
+
+        # If log file doesn't exist, initialize game times from scratch
         return {game: 0 for game in self.tracked_games}
 
     def save_game_times(self):
