@@ -103,6 +103,35 @@ RobloxPlayerBeta.exe
 steam.exe
 ```
 
+## Auto Starting the Application
+
+So that the application starts automatically when the user logs in we will add a new Task to the Task Scheduler.
+
+### Start Task Scheduler
+
+1. Win+R: taskschd.msc
+2. Click: OK
+
+### Adding New Task
+
+1. Select Task Scheduler (Local)
+2. From menu: Action > Create Task...
+3. Type: Game Time Limiter
+4. Under Security options: Select Run when user is logged on
+5. Select Triggers
+6. Click on New...
+7. Begin the task: At log on
+8. Settings: Any user
+9. Advanced settings: Enabled
+10. Click: OK
+11. Select Actions
+12. Click on New...
+13. Actions: Start a program
+14. Settings > Program/script: Browse to location of game_time_limiter.exe
+15. Start in (optional): Enter the path to base directory of executable
+16. Click: OK
+17. Click: OK
+
 ## Contributing
 
 Contributions are welcomed.
