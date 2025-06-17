@@ -1,4 +1,8 @@
+from pathlib import Path
+
 import psutil
+
+FILE = Path("found_processes.txt")
 
 
 def running_process():
@@ -12,10 +16,13 @@ def running_process():
     """
 
     running_games = {p.name() for p in psutil.process_iter()}
-    print("\n[Processes]")
-    for game in sorted(running_games):
-        if game != "":
-            print(game)
+    with FILE.open("w") as file:
+        print("\n[Processes]")
+
+        for game in sorted(running_games):
+            if game != "":
+                print(game)
+                file.write(game + "\n")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ IGNORED_EXES = [
     "uninst.exe",
     "launcher.exe",
 ]
+FILE = Path("found_games.txt")
 
 
 def find_game_executables(platform_dir: Path) -> set[str]:
@@ -47,9 +48,12 @@ def show_games(platform: str, games: set[str]):
     games (set[str]): A set of game executable names found on the platform
     """
 
-    print(f"\n[{platform}]")
-    for game in games:
-        print(game)
+    with FILE.open("a") as file:
+        print(f"\n[{platform}]")
+        file.write(f"\n[{platform}]\n")
+        for game in games:
+            print(game)
+            file.write(game + "\n")
 
 
 def epic():
