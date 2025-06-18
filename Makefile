@@ -4,6 +4,9 @@ test:
 coverage:
     pytest --cov=game_time_limiter --cov-report=term-missing
 
+cov_html:
+    pytest --cov=game_time_limiter --cov-report=html
+
 lint:
     flake8 game_time_limiter.py test_game_time_limiter.py
 
