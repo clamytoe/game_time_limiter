@@ -2,5 +2,5 @@
     "limit_minutes": 120,
     "log_path": "C:/Users/clamy/AppData/Roaming/GameTimeLog.json",
     "apps_list": "C:/Users/clamy/Documents/apps_list.txt",
-    "password": "admin"
+    "password": "mysecurepassword"
 }
