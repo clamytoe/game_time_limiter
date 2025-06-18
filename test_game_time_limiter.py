@@ -87,14 +87,14 @@ def test_password_validation(input_pwd, actual_pwd, expected):
     assert gtl.GameTimeTracker.is_password_valid(input_pwd, actual_pwd) == expected
 
 
-def test_config_path_defaults(patch_path):
-    minimal_config = '{"limit_minutes": 90, "password": "abc123"}'
+def test_config_path_defaults():
+    assert gtl.LOG_PATH == Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
+    assert gtl.APPS_LIST_FILE == Path(__file__).parent / "apps_list.txt"
 
-    with patch_path("CONFIG_FILE", "config.json", minimal_config):
-        importlib.reload(gtl)
 
-        assert gtl.LOG_PATH == Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
-        assert gtl.APPS_LIST_FILE == Path(__file__).parent / "apps_list.txt"
+def test_log_config_load(tmp_path):
+    gtl.CONFIG_FILE = tmp_path / "config.json"
+    assert gtl.load_config() == {}
 
 
 # File-loading logic with patched paths
