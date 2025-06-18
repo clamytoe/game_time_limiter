@@ -5,6 +5,7 @@
 ![Python version][python-version]
 ![Latest version][latest-version]
 [![GitHub issues][issues-image]][issues-url]
+![Coverage](https://img.shields.io/badge/Coverage-84%25-brightgreen)
 [![GitHub forks][fork-image]][fork-url]
 [![GitHub Stars][stars-image]][stars-url]
 [![License][license-image]][license-url]
