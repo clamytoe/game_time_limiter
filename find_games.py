@@ -1,10 +1,18 @@
+import sys
 from pathlib import Path
 
+# Detect if running as an EXE
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).parent  # Get the executable's directory
+else:
+    BASE_DIR = Path(__file__).parent  # Get script's directory when running normally
+
+# Define tracked games file path
+FILE = BASE_DIR / Path("found_games.txt")
 IGNORED_EXES = [
     "uninst.exe",
     "launcher.exe",
 ]
-FILE = Path("found_games.txt")
 
 
 def find_game_executables(platform_dir: Path) -> set[str]:

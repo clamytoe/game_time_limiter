@@ -1,8 +1,16 @@
+import sys
 from pathlib import Path
 
 import psutil
 
-FILE = Path("found_processes.txt")
+# Detect if running as an EXE
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).parent  # Get the executable's directory
+else:
+    BASE_DIR = Path(__file__).parent  # Get script's directory when running normally
+
+# Define tracked games file path
+FILE = BASE_DIR / Path("found_processes.txt")
 
 
 def running_process():
