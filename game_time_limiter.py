@@ -195,8 +195,11 @@ class GameTimeTracker(wx.Frame):
         """
 
         data = {"date": time.strftime("%Y-%m-%d"), "game_times": self.game_times}
-        with self.log_path.open("w") as file:
-            json.dump(data, file)
+        try:
+            with self.log_path.open("w") as file:
+                json.dump(data, file)
+        except (OSError, PermissionError) as e:
+            print(f"[ERROR] Failed to save game times: {e}")
 
     def toggle_list(self, event) -> None:
         """

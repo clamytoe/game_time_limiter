@@ -4,9 +4,11 @@ test_game_time_limiter.py
 Tests for game_time_limiter.
 """
 
+import json
+import time
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 import wx
@@ -39,6 +41,11 @@ def patch_path(monkeypatch):
             yield
 
     return _patch
+
+
+@pytest.fixture
+def wx_app():
+    return wx.App(False)
 
 
 # Initialization and state tests
@@ -140,3 +147,65 @@ def test_log_file_loading(patch_path, log_content, expected):
     with patch_path("LOG_PATH", "log.json", log_content):
         result = gtl.load_game_times(gtl.LOG_PATH)
         assert result == expected
+
+
+# WX logic testing
+
+
+def test_ask_password_valid(monkeypatch):
+    _ = wx.App(False)
+    tracker = gtl.GameTimeTracker()
+
+    mock_dialog = MagicMock()
+    mock_dialog.ShowModal.return_value = wx.ID_OK
+    mock_dialog.GetValue.return_value = gtl.DEFAULT_PASSWORD
+
+    with patch("wx.TextEntryDialog", return_value=mock_dialog), patch.object(
+        tracker, "Destroy"
+    ) as mock_destroy:
+        tracker.ask_password()
+        mock_destroy.assert_called_once()
+
+
+def test_ask_password_invalid(monkeypatch, wx_app):
+    tracker = gtl.GameTimeTracker()
+
+    mock_dialog = MagicMock()
+    mock_dialog.ShowModal.return_value = wx.ID_OK
+    mock_dialog.GetValue.return_value = "wrongpass"
+
+    with patch("wx.TextEntryDialog", return_value=mock_dialog), patch(
+        "wx.MessageBox"
+    ) as mock_msgbox, patch.object(tracker, "Destroy") as mock_destroy:
+        tracker.ask_password()
+        mock_msgbox.assert_called_once_with(
+            "Incorrect Password!", "Access Denied", wx.OK | wx.ICON_ERROR
+        )
+        mock_destroy.assert_not_called()
+
+
+def test_ask_password_cancel(monkeypatch, wx_app):
+    tracker = gtl.GameTimeTracker()
+
+    mock_dialog = MagicMock()
+    mock_dialog.ShowModal.return_value = wx.ID_CANCEL
+
+    with patch("wx.TextEntryDialog", return_value=mock_dialog), patch.object(
+        tracker, "Destroy"
+    ) as mock_destroy:
+        tracker.ask_password()
+        mock_destroy.assert_not_called()
+
+
+# Saving log file testing
+
+
+def test_save_game_times(wx_app, tmp_path, capsys):
+    tracker = gtl.GameTimeTracker()
+    tracker.log_path = tmp_path / "bad_log.json"
+    tracker.game_times = {"javaw.exe": 45}
+
+    with patch("pathlib.Path.open", side_effect=PermissionError("No write access")):
+        tracker.save_game_times()
+        out, err = capsys.readouterr()
+        assert "Failed to save game times" in out
