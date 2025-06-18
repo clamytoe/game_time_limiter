@@ -38,6 +38,23 @@ DEFAULT_PASSWORD = config.get("password", "mysecurepassword")
 APPS_LIST = Path(config.get("apps_list", Path(__file__).parent / "apps_list.txt"))
 
 
+def load_game_times(log_path: Path) -> dict:
+    """
+    Load playtime from file.
+
+    Reads the contents of the log file into a dictionary with game names as
+    keys and playtime in minutes as values. If the file is missing or the
+    date is not today, an empty dictionary is returned.
+    """
+    if log_path.exists():
+        try:
+            with log_path.open("r") as file:
+                return json.load(file).get("game_times", {})
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
 class GameTimeTracker(wx.Frame):
     def __init__(
         self, apps_list: str = "apps_list.txt", limit_minutes: int = 120
@@ -64,7 +81,7 @@ class GameTimeTracker(wx.Frame):
         self.tracked_games_file = self.base_dir / self.apps_list
         self.tracked_games = self.load_tracked_games()
         self.log_path = Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
-        self.game_times = self.load_game_times()
+        self.game_times = load_game_times(self.log_path)
 
         panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -114,7 +131,7 @@ class GameTimeTracker(wx.Frame):
             dlg.Destroy()
 
             # Validate the password (change "mysecurepassword" to your actual password)
-            if entered_password == DEFAULT_PASSWORD:
+            if self.is_password_valid(entered_password, DEFAULT_PASSWORD):
                 self.Destroy()  # Close the app
             else:
                 wx.MessageBox(
@@ -142,6 +159,44 @@ class GameTimeTracker(wx.Frame):
             base_dir = Path(__file__).parent
 
         return base_dir
+
+    @staticmethod
+    def is_password_valid(input_pwd: str, actual_pwd: str) -> bool:
+        """Check if the input password matches the actual password."""
+        return input_pwd == actual_pwd
+
+    def load_tracked_games(self) -> set:
+        """
+        Load tracked games from file.
+
+        Reads the contents of the tracked games file into a set.
+        If the file is missing, an empty set is returned.
+        """
+        if self.tracked_games_file.exists():
+            with self.tracked_games_file.open("r") as file:
+                return {
+                    line.strip()
+                    for line in file
+                    if line.strip() and not line.strip().startswith("#")
+                }
+
+        return set()
+
+    def on_close_attempt(self, event):
+        """Intercepts close button clicks and prompts for a password."""
+        self.ask_password()
+
+    def save_game_times(self):
+        """
+        Save the current playtime data to a log file.
+
+        This function writes the current date and playtime data for each tracked
+        game to a JSON log file. The log file is stored at the specified log path.
+        """
+
+        data = {"date": time.strftime("%Y-%m-%d"), "game_times": self.game_times}
+        with self.log_path.open("w") as file:
+            json.dump(data, file)
 
     def toggle_list(self, event) -> None:
         """
@@ -225,64 +280,6 @@ class GameTimeTracker(wx.Frame):
             self.alert_shown = True
 
         self.save_game_times()
-
-    def load_tracked_games(self) -> set:
-        """
-        Load tracked games from file.
-
-        Reads the contents of the tracked games file into a set.
-        If the file is missing, an empty set is returned.
-        """
-        if self.tracked_games_file.exists():
-            with self.tracked_games_file.open("r") as file:
-                return {line.strip() for line in file}
-
-        return set()
-
-    def load_game_times(self) -> dict:
-        """
-        Load playtime from file.
-
-        Reads the contents of the log file into a dictionary with game names as
-        keys and playtime in minutes as values. If the file is missing or the
-        date is not today, an empty dictionary is returned.
-        """
-        if self.log_path.exists():
-            with self.log_path.open("r") as file:
-                data = json.load(file)
-                log_date = data.get("date")
-
-                # If the log date is outdated, reset all game times
-                if log_date != time.strftime("%Y-%m-%d"):
-                    return {game: 0 for game in self.tracked_games}
-
-                game_times = data.get("game_times", {})
-
-                # Ensure every tracked game has a key (prevent missing key crash)
-                for game in self.tracked_games:
-                    if game not in game_times:
-                        game_times[game] = 0  # Initialize missing game key
-
-                return game_times
-
-        # If log file doesn't exist, initialize game times from scratch
-        return {game: 0 for game in self.tracked_games}
-
-    def save_game_times(self):
-        """
-        Save the current playtime data to a log file.
-
-        This function writes the current date and playtime data for each tracked
-        game to a JSON log file. The log file is stored at the specified log path.
-        """
-
-        data = {"date": time.strftime("%Y-%m-%d"), "game_times": self.game_times}
-        with self.log_path.open("w") as file:
-            json.dump(data, file)
-
-    def on_close_attempt(self, event):
-        """Intercepts close button clicks and prompts for a password."""
-        self.ask_password()
 
 
 if __name__ == "__main__":
