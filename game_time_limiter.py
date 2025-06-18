@@ -100,7 +100,7 @@ class GameTimeTracker(wx.Frame):
 
         self.Show()
 
-    def ask_password(self):
+    def ask_password(self) -> None:
         """Displays a password prompt before allowing the app to close."""
         dlg = wx.TextEntryDialog(
             self,
@@ -248,25 +248,25 @@ class GameTimeTracker(wx.Frame):
         date is not today, an empty dictionary is returned.
         """
         if self.log_path.exists():
-                with self.log_path.open("r") as file:
-                    data = json.load(file)
-                    log_date = data.get("date")
+            with self.log_path.open("r") as file:
+                data = json.load(file)
+                log_date = data.get("date")
 
-                    # If the log date is outdated, reset all game times
-                    if log_date != time.strftime("%Y-%m-%d"):
-                        return {game: 0 for game in self.tracked_games}
+                # If the log date is outdated, reset all game times
+                if log_date != time.strftime("%Y-%m-%d"):
+                    return {game: 0 for game in self.tracked_games}
 
-                    game_times = data.get("game_times", {})
+                game_times = data.get("game_times", {})
 
-                    # Ensure every tracked game has a key (prevent missing key crash)
-                    for game in self.tracked_games:
-                        if game not in game_times:
-                            game_times[game] = 0  # Initialize missing game key
+                # Ensure every tracked game has a key (prevent missing key crash)
+                for game in self.tracked_games:
+                    if game not in game_times:
+                        game_times[game] = 0  # Initialize missing game key
 
-                    return game_times
+                return game_times
 
-            # If log file doesn't exist, initialize game times from scratch
-            return {game: 0 for game in self.tracked_games}
+        # If log file doesn't exist, initialize game times from scratch
+        return {game: 0 for game in self.tracked_games}
 
     def save_game_times(self):
         """
