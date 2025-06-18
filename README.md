@@ -45,6 +45,21 @@ pip install -r requirements.txt
 pyinstaller --onefile --windowed --icon=OGS.ico game_time_limiter.py
 ```
 
+### Configuration
+
+I've made it so that you can configure the app before it is run. This is done by creating a `config.json` file in the base directory of the application. Just modify the values in the file to suit your needs.
+
+**config.json**:
+
+```json
+{
+    "limit_minutes": 120,
+    "log_path": "C:/Users/clamy/AppData/Roaming/GameTimeLog.json",
+    "apps_list": "C:/Users/clamy/Documents/apps_list.txt",
+    "password": "mysecurepassword"
+}
+```
+
 ## Additional tools
 
 I've provided additional scripts to help with finding what Steam and Epic Games are installed on the system, along with another to display the currently running executables.
