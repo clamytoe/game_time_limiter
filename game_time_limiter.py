@@ -27,15 +27,22 @@ def load_config():
     return {}
 
 
-config = load_config()
+def get_log_path(config):
+    return Path(
+        config.get("log_path", Path.home() / "AppData" / "Roaming" / "GameTimeLog.json")
+    )
+
+
+def get_apps_list_file(config):
+    return Path(config.get("apps_list", Path(__file__).with_name("apps_list.txt")))
+
 
 # Assign values from config file
+config = load_config()
 LIMIT_MINUTES = config.get("limit_minutes", 120)
-LOG_PATH = Path(
-    config.get("log_path", Path.home() / "AppData" / "Roaming" / "GameTimeLog.json")
-)
+LOG_PATH = get_log_path(config)
 DEFAULT_PASSWORD = config.get("password", "mysecurepassword")
-APPS_LIST = Path(config.get("apps_list", Path(__file__).parent / "apps_list.txt"))
+APPS_LIST = get_apps_list_file(config)
 
 
 def load_game_times(log_path: Path) -> dict:
@@ -285,7 +292,7 @@ class GameTimeTracker(wx.Frame):
         self.save_game_times()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     app = wx.App(False)
     GameTimeTracker()
     app.MainLoop()

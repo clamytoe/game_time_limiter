@@ -4,6 +4,7 @@ test_game_time_limiter.py
 Tests for game_time_limiter.
 """
 
+import importlib
 import json
 import time
 from contextlib import contextmanager
@@ -84,6 +85,16 @@ def test_tracked_games_type(tracker):
 )
 def test_password_validation(input_pwd, actual_pwd, expected):
     assert gtl.GameTimeTracker.is_password_valid(input_pwd, actual_pwd) == expected
+
+
+def test_config_path_defaults(patch_path):
+    minimal_config = '{"limit_minutes": 90, "password": "abc123"}'
+
+    with patch_path("CONFIG_FILE", "config.json", minimal_config):
+        importlib.reload(gtl)
+
+        assert gtl.LOG_PATH == Path.home() / "AppData" / "Roaming" / "GameTimeLog.json"
+        assert gtl.APPS_LIST_FILE == Path(__file__).parent / "apps_list.txt"
 
 
 # File-loading logic with patched paths
