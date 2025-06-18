@@ -10,7 +10,7 @@ import wx
 def get_base() -> Path:
     """Determine the correct base directory, whether running as a script or an EXE."""
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent  # EXE location
+        return Path(sys.executable).parent  # pragma: no cover
     else:
         return Path(__file__).parent  # Script location
 
