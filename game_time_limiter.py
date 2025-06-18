@@ -7,6 +7,37 @@ import psutil
 import wx
 
 
+def get_base() -> Path:
+    """Determine the correct base directory, whether running as a script or an EXE."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent  # EXE location
+    else:
+        return Path(__file__).parent  # Script location
+
+
+BASE_DIR = get_base()
+CONFIG_FILE = BASE_DIR / "config.json"
+APPS_LIST_FILE = BASE_DIR / "apps_list.txt"
+
+
+def load_config():
+    if CONFIG_FILE.exists():
+        with CONFIG_FILE.open("r") as file:
+            return json.load(file)
+    return {}
+
+
+config = load_config()
+
+# Assign values from config file
+LIMIT_MINUTES = config.get("limit_minutes", 120)
+LOG_PATH = Path(
+    config.get("log_path", Path.home() / "AppData" / "Roaming" / "GameTimeLog.json")
+)
+DEFAULT_PASSWORD = config.get("password", "mysecurepassword")
+APPS_LIST = Path(config.get("apps_list", Path(__file__).parent / "apps_list.txt"))
+
+
 class GameTimeTracker(wx.Frame):
     def __init__(
         self, apps_list: str = "apps_list.txt", limit_minutes: int = 120
@@ -65,7 +96,33 @@ class GameTimeTracker(wx.Frame):
         self.SetSize(350, 130)  # Start with the smaller window
         self.toggle_btn.SetLabel("Show List")
 
+        self.Bind(wx.EVT_CLOSE, self.on_close_attempt)
+
         self.Show()
+
+    def ask_password(self):
+        """Displays a password prompt before allowing the app to close."""
+        dlg = wx.TextEntryDialog(
+            self,
+            "Enter Admin Password:",
+            "Restricted Access",
+            style=wx.TE_PASSWORD | wx.OK | wx.CANCEL,
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:  # Ensures user can press OK
+            entered_password = dlg.GetValue()
+            dlg.Destroy()
+
+            # Validate the password (change "mysecurepassword" to your actual password)
+            if entered_password == DEFAULT_PASSWORD:
+                self.Destroy()  # Close the app
+            else:
+                wx.MessageBox(
+                    "Incorrect Password!", "Access Denied", wx.OK | wx.ICON_ERROR
+                )
+
+        else:
+            dlg.Destroy()  # Close dialog if user cancels
 
     def get_base(self) -> Path:
         """
@@ -191,11 +248,25 @@ class GameTimeTracker(wx.Frame):
         date is not today, an empty dictionary is returned.
         """
         if self.log_path.exists():
-            with self.log_path.open("r") as file:
-                data = json.load(file)
-                if data["date"] == time.strftime("%Y-%m-%d"):
-                    return data["game_times"]
-        return {game: 0 for game in self.tracked_games}
+                with self.log_path.open("r") as file:
+                    data = json.load(file)
+                    log_date = data.get("date")
+
+                    # If the log date is outdated, reset all game times
+                    if log_date != time.strftime("%Y-%m-%d"):
+                        return {game: 0 for game in self.tracked_games}
+
+                    game_times = data.get("game_times", {})
+
+                    # Ensure every tracked game has a key (prevent missing key crash)
+                    for game in self.tracked_games:
+                        if game not in game_times:
+                            game_times[game] = 0  # Initialize missing game key
+
+                    return game_times
+
+            # If log file doesn't exist, initialize game times from scratch
+            return {game: 0 for game in self.tracked_games}
 
     def save_game_times(self):
         """
@@ -208,6 +279,10 @@ class GameTimeTracker(wx.Frame):
         data = {"date": time.strftime("%Y-%m-%d"), "game_times": self.game_times}
         with self.log_path.open("w") as file:
             json.dump(data, file)
+
+    def on_close_attempt(self, event):
+        """Intercepts close button clicks and prompts for a password."""
+        self.ask_password()
 
 
 if __name__ == "__main__":
